@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concert "J'y Serai" - Ajoutez votre photo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="assets/images/affiche.png">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Concert "J'y Serei" - Personnalisez votre affiche</h1>
+            <p class="subtitle">Un temps spécial de reconnaissance, de louange et d'action de grâce</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Section de l'affiche -->
+            <div class="poster-section">
+                <div class="poster-wrapper">
+                    <!-- Conteneur principal -->
+                    <div class="poster-overlay-container">
+                        <!-- L'affiche originale -->
+                        <img src="assets/images/affiche.png" alt="Affiche du concert J'y Serei" class="original-poster" id="original-poster">
+                        
+                        <!-- Zone pour la photo utilisateur -->
+                        <div class="photo-overlay-zone">
+                            <div class="photo-overlay-container">
+                                <img id="user-photo" class="user-photo" alt="Votre photo">
+                                <div class="placeholder-text" id="placeholder-text">
+                                    <div class="placeholder-icon">👤</div>
+                                    <div>Votre photo apparaîtra ici</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone de contrôle -->
+            <div class="controls">
+                <h2>Personnalisez votre affiche</h2>
+                <p class="instructions">Ajoutez votre photo et téléchargez votre affiche personnalisée.</p>
+                
+                <div class="upload-area">
+                    <div class="button-group">
+                        <input type="file" id="photo-input" accept="image/*" class="file-input">
+                        <label for="photo-input" class="action-button upload-button">
+                            <span class="button-icon">📷</span>
+                            <span class="button-text">Ajouter ma photo</span>
+                        </label>
+                        
+                        <button id="remove-photo" class="action-button remove-button" disabled>
+                            <span class="button-icon">🗑️</span>
+                            Supprimer
+                        </button>
+                        
+                        <button id="download-poster" class="action-button download-button" disabled>
+                            <span class="button-icon">💾</span>
+                            Télécharger l'affiche
+                        </button>
+                    </div>
+                    <p class="file-info" id="file-info">Aucune photo sélectionnée</p>
+                </div>
+
+                <div class="instructions-details">
+                    <p><strong>Comment ça marche :</strong></p>
+                    <ul>
+                        <li>Cliquez sur "Ajouter ma photo" et sélectionnez une image</li>
+                        <li>Votre photo apparaîtra automatiquement sur l'affiche</li>
+                        <li>Cliquez sur "Télécharger l'affiche" pour obtenir votre version personnalisée</li>
+                        <li>Utilisez "Supprimer" pour recommencer</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="event-details">
+                <div class="event-date">
+                    <h3>📅 Date et heure</h3>
+                    <p><strong>Dimanche 18 janvier 2026</strong></p>
+                    <p>14H00 (EXACT)</p>
+                </div>
+                <div class="event-program">
+                    <h3>🎶 Programme</h3>
+                    <p>Prestations de Groupes</p>
+                    <p>Déclarations Prophétiques</p>
+                    <p>Collation</p>
+                </div>
+                <div class="event-location">
+                    <h3>📍 Lieu</h3>
+                    <p>Akogbato, première von à gauche, après l'ancienne carrière de sable en quintant godomey magasin</p>
+                    <p><strong>Contacts :</strong> (+229) 54 04 88 57 / (+229) 96 93 28 30</p>
+                </div>
+            </div>
+            <div class="footer-note">
+                <p>ENTRÉE LIBRE ET GRATUITE</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
