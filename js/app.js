@@ -3,29 +3,32 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ================= CONFIGURATION RESPONSIVE =================
-    // Ces valeurs sont basées sur une affiche de référence 1200x1600px
-    const REFERENCE_SIZE = {
-        width: 1200,
-        height: 1600
-    };
-    
-    const CONFIG = {
-        // Position en POURCENTAGE par rapport à l'affiche de référence
-        // Cela rend le positionnement responsive
-        positionPercent: {
-            top: 13.33,    // 160/1200 * 100 = 13.33%
-            left: 70,      // 840/1200 * 100 = 70%
-            width: 30,     // 360/1200 * 100 = 30%
-            height: 28.75  // 460/1600 * 100 = 28.75%
-        },
-        
-        // Position fixe pour l'affiche originale (calculée automatiquement)
-        originalPosition: null,
-        
-        // Position actuelle à l'écran (calculée automatiquement)
-        currentPosition: null
-    };
+    // ================= CONFIGURATION =================
+// REMPLACEZ CES 6 VALEURS AVEC VOS MESURES :
+
+// 1. DIMENSIONS de votre affiche.png :
+const AFFICHE_LARGEUR = 6000;    // ← METTEZ VOTRE LARGEUR ICI
+const AFFICHE_HAUTEUR = 6000;    // ← METTEZ VOTRE HAUTEUR ICI
+
+// 2. POSITION du cadre vide sur votre affiche :
+const CADRE_HAUT = 1792;          // ← METTEZ VOTRE DISTANCE HAUT ICI
+const CADRE_GAUCHE = 4135;        // ← METTEZ VOTRE DISTANCE GAUCHE ICI  
+const CADRE_LARGEUR = 1528;       // ← METTEZ VOTRE LARGEUR CADRE ICI
+const CADRE_HAUTEUR = 2112;       // ← METTEZ VOTRE HAUTEUR CADRE ICI
+
+// =================================================
+// NE TOUCHEZ PAS CE QUI SUIT (calcul automatique) :
+const CONFIG = {
+    positionPercent: {
+        top: (CADRE_HAUT / AFFICHE_HAUTEUR) * 100,
+        left: (CADRE_GAUCHE / AFFICHE_LARGEUR) * 100,
+        width: (CADRE_LARGEUR / AFFICHE_LARGEUR) * 100,
+        height: (CADRE_HAUTEUR / AFFICHE_HAUTEUR) * 100
+    },
+    originalPosition: null,
+    currentPosition: null
+};
+// =================================================
     // ============================================================
     
     // Éléments DOM

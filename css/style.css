@@ -103,8 +103,8 @@ body {
 }
 
 .photo-overlay-zone.has-photo {
-    border: 2px solid #2ecc71;
-    background-color: rgba(46, 204, 113, 0.05);
+    border-radius: 30px;
+    background-color: black;
 }
 
 /* Conteneur de la photo */
@@ -113,7 +113,7 @@ body {
     height: 100%;
     overflow: hidden;
     position: relative;
-    border-radius: 4px;
+    border-radius: 30px;
 }
 
 /* Photo de l'utilisateur */
@@ -123,6 +123,7 @@ body {
     object-fit: cover;
     object-position: center;
     display: none;
+     border-radius: 30px;
 }
 
 .user-photo.active {
