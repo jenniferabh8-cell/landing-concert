@@ -58,53 +58,47 @@ body {
     justify-content: center;
 }
 
-/* Conteneur principal pour superposition - CRITIQUE POUR LE RESPONSIVE */
+/* Conteneur principal */
 .poster-overlay-container {
     position: relative;
     display: inline-block;
-    max-width: 100%;
     width: 100%;
+    max-width: 100%;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
     background: #f9f9f9;
 }
 
-/* L'affiche originale - JAMAIS redimensionnée mais responsive */
+/* L'affiche originale */
 .original-poster {
     display: block;
     width: 100%;
-    height: auto; /* Garde les proportions */
+    height: auto; /* Garde les proportions naturelles */
     max-width: 100%;
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
 }
 
-/* Zone de superposition pour la photo - POSITIONNEMENT RESPONSIVE */
+/* Zone photo - POSITION DYNAMIQUE VIA JS */
 .photo-overlay-zone {
     position: absolute;
-    /* Ces valeurs sont en pourcentage pour le responsive */
-    top: 13.33%;     /* 160/1200 ≈ 13.33% (si affiche fait 1200px de large) */
-    left: 70%;       /* 840/1200 = 70% */
-    width: 30%;      /* 360/1200 = 30% */
-    height: 28.75%;  /* 460/1600 ≈ 28.75% (si affiche fait 1600px de haut) */
-    
-    /* Valeurs minimales pour éviter que le cadre soit trop petit */
-    min-width: 100px;
-    min-height: 130px;
-    
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 100px;
     z-index: 100;
     border: 2px dashed #3498db;
-    border-radius: 4px;
+    border-radius: 30px;
     background-color: rgba(52, 152, 219, 0.05);
-    transition: all 0.3s ease;
-    transform: translateZ(0); /* Optimisation pour mobile */
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
 }
 
 .photo-overlay-zone.has-photo {
-    border-radius: 30px;
-    background-color: black;
+    border: 2px solid #2ecc71;
+    background-color: rgba(46, 204, 113, 0.05);
 }
 
 /* Conteneur de la photo */
@@ -123,7 +117,7 @@ body {
     object-fit: cover;
     object-position: center;
     display: none;
-     border-radius: 30px;
+    border-radius: 30px;
 }
 
 .user-photo.active {
@@ -346,7 +340,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* ========== MEDIA QUERIES POUR LE RESPONSIVE ========== */
+/* ========== RESPONSIVE DESIGN ========== */
 
 /* Tablettes */
 @media (min-width: 768px) {
@@ -384,11 +378,6 @@ body {
         grid-template-columns: repeat(3, 1fr);
         gap: 25px;
     }
-    
-    .photo-overlay-zone {
-        min-width: 150px;
-        min-height: 200px;
-    }
 }
 
 /* Desktop */
@@ -409,31 +398,9 @@ body {
         font-size: 1.1rem;
         padding: 16px 30px;
     }
-    
-    .photo-overlay-zone {
-        min-width: 200px;
-        min-height: 260px;
-    }
 }
 
-/* Très grands écrans */
-@media (min-width: 1200px) {
-    .container {
-        max-width: 1200px;
-    }
-    
-    .photo-overlay-zone {
-        /* Retour aux valeurs fixes pour les très grands écrans */
-        top: 160px;
-        left: 840px;
-        width: 360px;
-        height: 460px;
-        min-width: auto;
-        min-height: auto;
-    }
-}
-
-/* Très petits téléphones */
+/* Pour les très petits écrans */
 @media (max-width: 375px) {
     .header h1 {
         font-size: 1.5rem;
@@ -458,35 +425,5 @@ body {
     
     .placeholder-icon {
         font-size: 28px;
-    }
-    
-    .photo-overlay-zone {
-        min-width: 80px;
-        min-height: 100px;
-    }
-}
-
-/* Mode paysage sur mobile */
-@media (max-height: 500px) and (orientation: landscape) {
-    .poster-section {
-        padding: 15px;
-    }
-    
-    .controls {
-        padding: 20px 15px;
-    }
-    
-    .button-group {
-        flex-direction: row;
-        gap: 10px;
-    }
-    
-    .action-button {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-    
-    .instructions-details {
-        display: none; /* Cache les instructions en mode paysage pour gagner de la place */
     }
 }
