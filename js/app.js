@@ -1,5 +1,5 @@
 /**
- * Application d'ajout de photo - Version FIXE et RESPONSIVE
+ * Application d'ajout de photo - Version SYNC HRONISÉE
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -22,10 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadButton = document.getElementById('download-poster');
     const photoOverlayZone = document.querySelector('.photo-overlay-zone');
     const originalPoster = document.getElementById('original-poster');
-    const posterContainer = document.querySelector('.poster-overlay-container');
     
     let currentPhoto = null;
-    let originalPosterSize = null;
+    let echelleActuelle = 1;
     
     /**
      * Ajuste le cadre photo proportionnellement à l'affiche
@@ -34,32 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const poster = originalPoster;
         const cadre = photoOverlayZone;
         
-        if (!poster || !cadre) return;
+        if (!poster || !cadre || poster.naturalWidth === 0) return;
         
-        // Attendre que l'image soit complètement chargée
-        if (poster.naturalWidth === 0) {
-            poster.addEventListener('load', ajusterCadrePhoto);
-            return;
-        }
-        
-        // Stocker les dimensions originales (une seule fois)
-        if (!originalPosterSize) {
-            originalPosterSize = {
-                width: poster.naturalWidth,
-                height: poster.naturalHeight
-            };
-            console.log('📏 Dimensions originales de l\'affiche:', 
-                `${originalPosterSize.width}x${originalPosterSize.height}px`);
-        }
-        
-        // Calculer l'échelle actuelle (comment l'affiche est redimensionnée)
-        const echelle = poster.offsetWidth / originalPosterSize.width;
+        // Calculer l'échelle actuelle
+        echelleActuelle = poster.offsetWidth / poster.naturalWidth;
         
         // Calculer la nouvelle position proportionnelle
-        const nouveauHaut = CADRE_CONFIG.haut * echelle;
-        const nouveauGauche = CADRE_CONFIG.gauche * echelle;
-        const nouvelleLargeur = CADRE_CONFIG.largeur * echelle;
-        const nouvelleHauteur = CADRE_CONFIG.hauteur * echelle;
+        const nouveauHaut = CADRE_CONFIG.haut * echelleActuelle;
+        const nouveauGauche = CADRE_CONFIG.gauche * echelleActuelle;
+        const nouvelleLargeur = CADRE_CONFIG.largeur * echelleActuelle;
+        const nouvelleHauteur = CADRE_CONFIG.hauteur * echelleActuelle;
         
         // Appliquer les nouvelles dimensions
         cadre.style.top = `${nouveauHaut}px`;
@@ -67,12 +50,18 @@ document.addEventListener('DOMContentLoaded', function() {
         cadre.style.width = `${nouvelleLargeur}px`;
         cadre.style.height = `${nouvelleHauteur}px`;
         
-        console.log('✅ Cadre ajusté:', {
-            échelle: echelle.toFixed(4),
-            position: `${Math.round(nouveauGauche)}x${Math.round(nouveauHaut)}`,
-            dimensions: `${Math.round(nouvelleLargeur)}x${Math.round(nouvelleHauteur)}`,
-            affiche: `${poster.offsetWidth}x${poster.offsetHeight}`
+        console.log('📐 Cadre ajusté (affichage):', {
+            échelle: echelleActuelle.toFixed(4),
+            position: `(${Math.round(nouveauGauche)}, ${Math.round(nouveauHaut)})`,
+            dimensions: `${Math.round(nouvelleLargeur)}x${Math.round(nouvelleHauteur)}`
         });
+        
+        return {
+            top: nouveauHaut,
+            left: nouveauGauche,
+            width: nouvelleLargeur,
+            height: nouvelleHauteur
+        };
     }
     
     /**
@@ -127,20 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Calcule la position pour le téléchargement
-     */
-    function calculerPositionPourTelechargement() {
-        if (!originalPosterSize) return null;
-        
-        return {
-            top: CADRE_CONFIG.haut,
-            left: CADRE_CONFIG.gauche,
-            width: CADRE_CONFIG.largeur,
-            height: CADRE_CONFIG.hauteur
-        };
-    }
-    
-    /**
      * Génère et télécharge l'affiche finale
      */
     async function generateAndDownloadPoster() {
@@ -155,10 +130,13 @@ document.addEventListener('DOMContentLoaded', function() {
         downloadButton.disabled = true;
         
         try {
-            // Charger l'affiche originale
+            // 1. Charger l'affiche originale
             const posterImg = await loadImage('assets/images/affiche.png');
             
-            // Calculer la position du cadre sur l'original
+            console.log('🖼️ Dimensions originales de l\'affiche:', 
+                `${posterImg.naturalWidth}x${posterImg.naturalHeight}`);
+            
+            // 2. Calculer la position EXACTE sur l'original
             const cadrePosition = {
                 top: CADRE_CONFIG.haut,
                 left: CADRE_CONFIG.gauche,
@@ -166,19 +144,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 height: CADRE_CONFIG.hauteur
             };
             
-            // Créer le canvas avec les dimensions de l'original
+            console.log('📍 Position cadre sur original:', cadrePosition);
+            
+            // 3. Créer le canvas avec les dimensions de l'original
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = posterImg.naturalWidth;
             canvas.height = posterImg.naturalHeight;
             
-            // 1. Dessiner l'affiche originale
+            // 4. Dessiner l'affiche originale
             ctx.drawImage(posterImg, 0, 0);
             
-            // 2. Charger la photo utilisateur
+            // 5. Charger la photo utilisateur
             const userImg = await loadImage(currentPhoto);
             
-            // 3. Calculer object-fit: cover
+            console.log('📸 Dimensions photo utilisateur:', 
+                `${userImg.width}x${userImg.height}`);
+            
+            // 6. Calculer object-fit: cover POUR L'ORIGINAL
             const photoRatio = userImg.width / userImg.height;
             const cadreRatio = cadrePosition.width / cadrePosition.height;
             
@@ -198,10 +181,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 drawY = cadrePosition.top - (drawHeight - cadrePosition.height) / 2;
             }
             
-            // 4. Dessiner la photo
+            console.log('🎯 Position dessin sur original:', {
+                x: Math.round(drawX),
+                y: Math.round(drawY),
+                width: Math.round(drawWidth),
+                height: Math.round(drawHeight)
+            });
+            
+            // 7. Dessiner la photo
             ctx.drawImage(userImg, drawX, drawY, drawWidth, drawHeight);
             
-            // 5. Télécharger
+            // 8. Télécharger
             const link = document.createElement('a');
             const now = new Date();
             const timestamp = `${now.getDate().toString().padStart(2, '0')}${(now.getMonth()+1).toString().padStart(2, '0')}${now.getFullYear().toString().slice(-2)}`;
@@ -224,11 +214,67 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
             
         } catch (error) {
-            console.error('Erreur:', error);
+            console.error('❌ Erreur:', error);
             alert('Erreur lors de la génération. Essayez une autre photo.');
             downloadButton.innerHTML = originalText;
             downloadButton.disabled = false;
         }
+    }
+    
+    /**
+     * Test de précision
+     */
+    function testerPrecision() {
+        const poster = originalPoster;
+        if (!poster.complete) {
+            console.log('🔄 Affiche non chargée, attendez...');
+            return;
+        }
+        
+        // Calcul pour l'affichage
+        const echelle = poster.offsetWidth / poster.naturalWidth;
+        const cadreEcran = {
+            top: CADRE_CONFIG.haut * echelle,
+            left: CADRE_CONFIG.gauche * echelle,
+            width: CADRE_CONFIG.largeur * echelle,
+            height: CADRE_CONFIG.hauteur * echelle
+        };
+        
+        console.log('🎯 TEST DE PRÉCISION:');
+        console.log('1. Dimensions affiche:', {
+            originale: `${poster.naturalWidth}x${poster.naturalHeight}`,
+            affichée: `${poster.offsetWidth}x${poster.offsetHeight}`,
+            échelle: echelle.toFixed(4)
+        });
+        
+        console.log('2. Position sur original:', {
+            top: CADRE_CONFIG.haut,
+            left: CADRE_CONFIG.gauche,
+            width: CADRE_CONFIG.largeur,
+            height: CADRE_CONFIG.hauteur
+        });
+        
+        console.log('3. Position à l\'écran:', {
+            top: Math.round(cadreEcran.top),
+            left: Math.round(cadreEcran.left),
+            width: Math.round(cadreEcran.width),
+            height: Math.round(cadreEcran.height)
+        });
+        
+        console.log('4. Cadre CSS actuel:', {
+            top: photoOverlayZone.style.top,
+            left: photoOverlayZone.style.left,
+            width: photoOverlayZone.style.width,
+            height: photoOverlayZone.style.height
+        });
+        
+        // Visualiser
+        photoOverlayZone.style.border = '3px solid red';
+        photoOverlayZone.style.background = 'rgba(255,0,0,0.1)';
+        setTimeout(() => {
+            photoOverlayZone.style.border = '';
+            photoOverlayZone.style.background = '';
+        }, 3000);
     }
     
     /**
@@ -250,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initialise l'application
      */
     function init() {
-        console.log('🎯 Application initialisée avec position FIXE');
+        console.log('🚀 Application initialisée');
         
         // Désactiver les boutons au départ
         removeButton.disabled = true;
@@ -265,7 +311,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (originalPoster.complete) {
             ajusterCadrePhoto();
         } else {
-            originalPoster.addEventListener('load', ajusterCadrePhoto);
+            originalPoster.addEventListener('load', function() {
+                ajusterCadrePhoto();
+                console.log('✅ Affiche chargée, cadre ajusté');
+            });
         }
         
         // Re-ajuster quand la fenêtre change de taille
@@ -280,25 +329,14 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(ajusterCadrePhoto, 300);
         });
         
-        // Fonction de débogage
-        window.debugCadre = function() {
-            console.log('=== DÉBOGAGE ===');
-            console.log('Configuration:', CADRE_CONFIG);
-            console.log('Dimensions affiche originale:', originalPosterSize);
-            console.log('Dimensions affiche affichée:', 
-                `${originalPoster.offsetWidth}x${originalPoster.offsetHeight}`);
-            
-            // Afficher un cadre rouge pour visualiser
-            photoOverlayZone.style.border = '3px solid red';
-            photoOverlayZone.style.background = 'rgba(255,0,0,0.2)';
-            setTimeout(() => {
-                photoOverlayZone.style.border = '';
-                photoOverlayZone.style.background = '';
-            }, 3000);
+        // Fonctions de débogage
+        window.testerPrecision = testerPrecision;
+        window.voirConfig = function() {
+            console.log('⚙️ Configuration:', CADRE_CONFIG);
         };
         
-        console.log('📱 Pour tester: redimensionnez la fenêtre - le cadre suivra proportionnellement');
-        console.log('🔧 Pour déboguer: tapez debugCadre() dans la console');
+        console.log('📱 Pour tester la précision: tapez testerPrecision() dans la console');
+        console.log('🔧 Vérifiez que les 4 valeurs sont correctes:', CADRE_CONFIG);
     }
     
     // Lancer l'application
