@@ -1,25 +1,32 @@
 /**
- * Application d'ajout de photo sur l'affiche
- * Configuration de position dans le code
+ * Application d'ajout de photo - Version RESPONSIVE
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ================= CONFIGURATION =================
-    // AJUSTEZ CES VALEURS selon votre affiche
+    // ================= CONFIGURATION RESPONSIVE =================
+    // Ces valeurs sont basées sur une affiche de référence 1200x1600px
+    const REFERENCE_SIZE = {
+        width: 1200,
+        height: 1600
+    };
+    
     const CONFIG = {
-        // Position sur l'affiche AFFICHÉE (ce que voit l'utilisateur)
-        display: {
-            top: 318,     // px depuis le haut de l'affiche affichée
-            left: 786,    // px depuis la gauche de l'affiche affichée
-            width: 285,   // largeur du cadre affiché
-            height: 423   // hauteur du cadre affiché
+        // Position en POURCENTAGE par rapport à l'affiche de référence
+        // Cela rend le positionnement responsive
+        positionPercent: {
+            top: 13.33,    // 160/1200 * 100 = 13.33%
+            left: 70,      // 840/1200 * 100 = 70%
+            width: 30,     // 360/1200 * 100 = 30%
+            height: 28.75  // 460/1600 * 100 = 28.75%
         },
         
-        // Position sur l'affiche ORIGINALE (pour le téléchargement)
-        // Ces valeurs seront calculées automatiquement
-        original: null
+        // Position fixe pour l'affiche originale (calculée automatiquement)
+        originalPosition: null,
+        
+        // Position actuelle à l'écran (calculée automatiquement)
+        currentPosition: null
     };
-    // =================================================
+    // ============================================================
     
     // Éléments DOM
     const photoInput = document.getElementById('photo-input');
@@ -30,56 +37,89 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadButton = document.getElementById('download-poster');
     const photoOverlayZone = document.querySelector('.photo-overlay-zone');
     const originalPoster = document.getElementById('original-poster');
+    const posterContainer = document.querySelector('.poster-overlay-container');
     
     let currentPhoto = null;
     
     /**
-     * Initialise la position du cadre
+     * Calcule la position du cadre à l'écran
      */
-    function initFramePosition() {
-        // Applique la position d'affichage
-        photoOverlayZone.style.top = `${CONFIG.display.top}px`;
-        photoOverlayZone.style.left = `${CONFIG.display.left}px`;
-        photoOverlayZone.style.width = `${CONFIG.display.width}px`;
-        photoOverlayZone.style.height = `${CONFIG.display.height}px`;
+    function calculateScreenPosition() {
+        if (!originalPoster.offsetWidth) return null;
         
-        console.log('Position d\'affichage configurée:', CONFIG.display);
+        const containerWidth = posterContainer.offsetWidth;
+        const posterWidth = originalPoster.offsetWidth;
+        const posterHeight = originalPoster.offsetHeight;
+        
+        // Calcule les marges pour centrer l'image
+        const horizontalMargin = (containerWidth - posterWidth) / 2;
+        
+        // Calcule la position en pixels basée sur les pourcentages
+        const pos = {
+            top: (CONFIG.positionPercent.top / 100) * posterHeight,
+            left: horizontalMargin + (CONFIG.positionPercent.left / 100) * posterWidth,
+            width: (CONFIG.positionPercent.width / 100) * posterWidth,
+            height: (CONFIG.positionPercent.height / 100) * posterHeight
+        };
+        
+        // Applique des limites minimales
+        pos.width = Math.max(pos.width, 100);
+        pos.height = Math.max(pos.height, 130);
+        
+        CONFIG.currentPosition = pos;
+        return pos;
+    }
+    
+    /**
+     * Met à jour la position du cadre à l'écran
+     */
+    function updateFramePosition() {
+        const pos = calculateScreenPosition();
+        if (!pos) return;
+        
+        photoOverlayZone.style.top = `${pos.top}px`;
+        photoOverlayZone.style.left = `${pos.left}px`;
+        photoOverlayZone.style.width = `${pos.width}px`;
+        photoOverlayZone.style.height = `${pos.height}px`;
+        
+        console.log('Position écran mise à jour:', {
+            top: Math.round(pos.top),
+            left: Math.round(pos.left),
+            width: Math.round(pos.width),
+            height: Math.round(pos.height),
+            affiche: `${originalPoster.offsetWidth}x${originalPoster.offsetHeight}`
+        });
     }
     
     /**
      * Calcule la position pour l'affiche originale
      */
     function calculateOriginalPosition() {
-        if (!originalPoster.complete) {
-            console.warn('Affiche non chargée, calcul différé');
+        if (!originalPoster.complete || !originalPoster.naturalWidth) {
+            console.warn('Affiche originale non chargée');
             return null;
         }
         
         const originalWidth = originalPoster.naturalWidth;
         const originalHeight = originalPoster.naturalHeight;
-        const displayedWidth = originalPoster.offsetWidth;
-        const displayedHeight = originalPoster.offsetHeight;
         
-        // Facteurs d'échelle
-        const scaleX = originalWidth / displayedWidth;
-        const scaleY = originalHeight / displayedHeight;
-        
-        // Calcule la position sur l'original
-        CONFIG.original = {
-            top: Math.round(CONFIG.display.top * scaleY),
-            left: Math.round(CONFIG.display.left * scaleX),
-            width: Math.round(CONFIG.display.width * scaleX),
-            height: Math.round(CONFIG.display.height * scaleY)
+        // Utilise les mêmes pourcentages pour l'original
+        CONFIG.originalPosition = {
+            top: (CONFIG.positionPercent.top / 100) * originalHeight,
+            left: (CONFIG.positionPercent.left / 100) * originalWidth,
+            width: (CONFIG.positionPercent.width / 100) * originalWidth,
+            height: (CONFIG.positionPercent.height / 100) * originalHeight
         };
         
-        console.log('Position originale calculée:', CONFIG.original);
-        console.log('Dimensions:', {
-            affiche: `${originalWidth}x${originalHeight}`,
-            affichage: `${displayedWidth}x${displayedHeight}`,
-            echelle: `x:${scaleX.toFixed(2)}, y:${scaleY.toFixed(2)}`
+        console.log('Position originale calculée:', {
+            top: Math.round(CONFIG.originalPosition.top),
+            left: Math.round(CONFIG.originalPosition.left),
+            width: Math.round(CONFIG.originalPosition.width),
+            height: Math.round(CONFIG.originalPosition.height),
+            dimensions: `${originalWidth}x${originalHeight}`
         });
         
-        return CONFIG.original;
+        return CONFIG.originalPosition;
     }
     
     /**
@@ -90,7 +130,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const file = event.target.files[0];
         if (!file.type.match('image.*')) {
-            alert('Veuillez sélectionner une image valide');
+            alert('Veuillez sélectionner une image valide (JPEG, PNG, etc.)');
+            return;
+        }
+        
+        // Limite la taille à 5MB pour mobile
+        if (file.size > 5 * 1024 * 1024) {
+            alert('L\'image est trop volumineuse. Maximum 5MB.');
             return;
         }
         
@@ -107,14 +153,20 @@ document.addEventListener('DOMContentLoaded', function() {
             removeButton.disabled = false;
             downloadButton.disabled = false;
             
-            fileInfo.textContent = `Photo: ${file.name}`;
+            fileInfo.textContent = `Photo ajoutée: ${file.name.substring(0, 20)}...`;
             photoOverlayZone.classList.add('has-photo');
             
-            // Calcule la position originale si ce n'est pas fait
-            if (!CONFIG.original) {
+            // Calcule les positions si ce n'est pas fait
+            if (!CONFIG.originalPosition) {
                 calculateOriginalPosition();
             }
+            updateFramePosition();
         };
+        
+        reader.onerror = function() {
+            alert('Erreur lors du chargement de la photo');
+        };
+        
         reader.readAsDataURL(file);
     }
     
@@ -140,13 +192,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Vérifie que la position originale est calculée
-        if (!CONFIG.original) {
+        if (!CONFIG.originalPosition) {
             if (!calculateOriginalPosition()) {
-                alert('Erreur: impossible de calculer la position. Rechargez la page.');
+                alert('Erreur: veuillez recharger la page et réessayer.');
                 return;
             }
         }
         
+        // État de chargement
+        const originalText = downloadButton.innerHTML;
         downloadButton.innerHTML = '<span class="button-icon">⏳</span> Génération...';
         downloadButton.disabled = true;
         
@@ -163,9 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.width = posterImg.naturalWidth;
             canvas.height = posterImg.naturalHeight;
             
-            console.log('Génération avec:', {
-                canvas: `${canvas.width}x${canvas.height}`,
-                cadre: CONFIG.original
+            console.log('Génération de l\'affiche:', {
+                dimensions: `${canvas.width}x${canvas.height}`,
+                cadre: CONFIG.originalPosition
             });
             
             // 1. Dessine l'affiche originale
@@ -173,22 +227,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 2. Calcule object-fit: cover
             const photoRatio = userImg.width / userImg.height;
-            const frameRatio = CONFIG.original.width / CONFIG.original.height;
+            const frameRatio = CONFIG.originalPosition.width / CONFIG.originalPosition.height;
             
             let drawWidth, drawHeight, drawX, drawY;
             
             if (photoRatio > frameRatio) {
                 // Photo plus large que le cadre
-                drawHeight = CONFIG.original.height;
+                drawHeight = CONFIG.originalPosition.height;
                 drawWidth = drawHeight * photoRatio;
-                drawX = CONFIG.original.left - (drawWidth - CONFIG.original.width) / 2;
-                drawY = CONFIG.original.top;
+                drawX = CONFIG.originalPosition.left - (drawWidth - CONFIG.originalPosition.width) / 2;
+                drawY = CONFIG.originalPosition.top;
             } else {
                 // Photo plus haute que le cadre
-                drawWidth = CONFIG.original.width;
+                drawWidth = CONFIG.originalPosition.width;
                 drawHeight = drawWidth / photoRatio;
-                drawX = CONFIG.original.left;
-                drawY = CONFIG.original.top - (drawHeight - CONFIG.original.height) / 2;
+                drawX = CONFIG.originalPosition.left;
+                drawY = CONFIG.originalPosition.top - (drawHeight - CONFIG.originalPosition.height) / 2;
             }
             
             // 3. Dessine la photo
@@ -196,13 +250,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 4. Télécharge
             const link = document.createElement('a');
-            const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const now = new Date();
+            const timestamp = `${now.getDate().toString().padStart(2, '0')}${(now.getMonth()+1).toString().padStart(2, '0')}${now.getFullYear()}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+            
             link.download = `Affiche_Concert_${timestamp}.png`;
-            link.href = canvas.toDataURL('image/png', 1.0);
+            link.href = canvas.toDataURL('image/png', 0.95); // Légère compression pour mobile
+            
+            // Pour iOS, il faut ajouter l'élément au DOM
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             
+            // Succès
             downloadButton.innerHTML = '<span class="button-icon">✅</span> Téléchargé!';
+            fileInfo.textContent = 'Affiche téléchargée avec succès';
             
+            // Réinitialise après 2 secondes
             setTimeout(() => {
                 downloadButton.innerHTML = '<span class="button-icon">💾</span> Télécharger';
                 downloadButton.disabled = false;
@@ -210,8 +273,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Erreur:', error);
-            alert('Erreur: ' + error.message);
-            downloadButton.innerHTML = '<span class="button-icon">💾</span> Télécharger';
+            alert('Erreur lors de la génération. Essayez une autre photo.');
+            downloadButton.innerHTML = originalText;
             downloadButton.disabled = false;
         }
     }
@@ -232,55 +295,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Fonction de débogage
+     * Fonction de débogage responsive
      */
-    function debugPosition() {
-        console.log('=== DÉBOGAGE POSITION ===');
-        console.log('Configuration actuelle:', CONFIG);
+    function debugResponsive() {
+        console.log('=== DÉBOGAGE RESPONSIVE ===');
+        console.log('Configuration:', CONFIG.positionPercent);
+        console.log('Dimensions écran:', {
+            conteneur: `${posterContainer.offsetWidth}px`,
+            affiche: `${originalPoster.offsetWidth}x${originalPoster.offsetHeight}`,
+            cadre: CONFIG.currentPosition
+        });
         
         if (originalPoster.complete) {
-            console.log('Dimensions affiche:', {
-                original: `${originalPoster.naturalWidth}x${originalPoster.naturalHeight}`,
-                affichage: `${originalPoster.offsetWidth}x${originalPoster.offsetHeight}`
+            console.log('Dimensions originale:', {
+                width: originalPoster.naturalWidth,
+                height: originalPoster.naturalHeight
             });
             
-            // Crée une image de test
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = originalPoster.naturalWidth;
-            canvas.height = originalPoster.naturalHeight;
-            
-            // Fond gris
-            ctx.fillStyle = '#f0f0f0';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Dessine le cadre
-            const pos = calculateOriginalPosition();
-            if (pos) {
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
-                ctx.fillRect(pos.left, pos.top, pos.width, pos.height);
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(pos.left, pos.top, pos.width, pos.height);
-                
-                // Texte
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 24px Arial';
-                ctx.fillText('ZONE PHOTO', pos.left + 10, pos.top + 30);
-                ctx.font = '16px Arial';
-                ctx.fillText(`${pos.width}x${pos.height}px`, pos.left + 10, pos.top + 60);
-                ctx.fillText(`Position: (${pos.left}, ${pos.top})`, pos.left + 10, pos.top + 90);
-                
-                // Télécharge
-                const link = document.createElement('a');
-                link.download = 'debug_position.png';
-                link.href = canvas.toDataURL();
-                link.click();
-                
-                console.log('Image de débogage téléchargée');
-            }
-        } else {
-            console.log('Affiche non chargée');
+            // Test visuel
+            photoOverlayZone.style.border = '3px solid red';
+            photoOverlayZone.style.background = 'rgba(255,0,0,0.2)';
+            setTimeout(() => {
+                photoOverlayZone.style.border = '';
+                photoOverlayZone.style.background = '';
+            }, 3000);
         }
     }
     
@@ -288,10 +326,10 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initialise l'application
      */
     function init() {
-        console.log('Application initialisée');
+        console.log('Application responsive initialisée');
         
         // Initialise la position
-        initFramePosition();
+        updateFramePosition();
         
         // Écouteurs d'événements
         photoInput.addEventListener('change', handleImageSelect);
@@ -306,29 +344,43 @@ document.addEventListener('DOMContentLoaded', function() {
         if (originalPoster.complete) {
             calculateOriginalPosition();
         } else {
-            originalPoster.addEventListener('load', calculateOriginalPosition);
+            originalPoster.addEventListener('load', function() {
+                calculateOriginalPosition();
+                updateFramePosition();
+            });
         }
         
-        // Recalcule si la fenêtre est redimensionnée
+        // RE-RESPONSIVE : Recalcule la position quand la fenêtre change
+        let resizeTimeout;
         window.addEventListener('resize', function() {
-            if (currentPhoto) {
-                calculateOriginalPosition();
-            }
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                updateFramePosition();
+                if (currentPhoto) {
+                    calculateOriginalPosition();
+                }
+            }, 250); // Délai pour éviter trop de recalculs
+        });
+        
+        // Recalcule aussi quand l'orientation change (mobile)
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                updateFramePosition();
+                if (currentPhoto) {
+                    calculateOriginalPosition();
+                }
+            }, 500);
         });
         
         // Expose la fonction de débogage
-        window.debugPosition = debugPosition;
+        window.debugResponsive = debugResponsive;
         
-        console.log('=== INSTRUCTIONS POUR AJUSTER ===');
-        console.log('Pour ajuster la position, modifiez les valeurs dans CONFIG.display:');
-        console.log('1. Ouvrez le fichier js/app.js');
-        console.log('2. Cherchez "const CONFIG = {"');
-        console.log('3. Modifiez top, left, width, height');
-        console.log('4. Rechargez la page');
-        console.log('');
-        console.log('Pour vérifier la position, tapez debugPosition() dans la console');
+        console.log('=== POUR MOBILE ===');
+        console.log('La position est maintenant responsive');
+        console.log('Le cadre s\'ajuste automatiquement à la taille de l\'écran');
+        console.log('Pour déboguer: debugResponsive() dans la console');
     }
     
-    // Lance l'application
-    init();
+    // Attendre que le DOM soit complètement prêt
+    setTimeout(init, 100);
 });
